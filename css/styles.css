@@ -1,0 +1,286 @@
+/* =========================================================
+   The Bard's Tongue — styles
+   The Shawnee Home Hub's quest look: a torch-lit dungeon in
+   dark plum, Cinzel headings, gold for the main action, and
+   Christon's plum. All colors and fonts live in the variables below.
+   ========================================================= */
+
+:root {
+  color-scheme: dark;
+
+  --bg: #15121d;
+  --surface: #1e1a29;
+  --sunk: #292338;
+  --ink: #ede6d3;
+  --muted: #aaa2bb;
+  --line: #3a3350;
+
+  --gold: #e6c36e;      /* main action */
+  --plum: #dda0e3;      /* Christon */
+  --plum-soft: #3b2642;
+  --ok: #86d6a1;
+  --warn: #f07d66;
+  --away: #e8b65c;
+  --away-soft: #3c2e19;
+
+  --display: "Cinzel", Georgia, serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+
+  --radius: 14px;
+  --tap: 52px;          /* minimum height for anything you click */
+}
+
+/* ---------- Base ---------- */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 17px/1.45 var(--body);
+  padding: 14px 16px 40px;
+}
+
+h1, h2, h3 { margin: 0; font-family: var(--display); font-weight: 600; letter-spacing: .02em; line-height: 1.2; }
+h2 { font-size: 21px; margin-bottom: 14px; }
+p { margin: 0; }
+
+button, input, textarea { font: inherit; color: inherit; }
+
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+.muted { color: var(--muted); }
+.spacer { flex: 1; }
+.grow { flex: 1; min-width: 0; }
+
+/* ---------- Header and tabs ---------- */
+
+.app-top { max-width: 960px; margin: 0 auto 10px; display: flex; align-items: center; gap: 12px; }
+.brand { font-family: var(--display); font-weight: 700; font-size: 1.5rem; color: var(--ink); text-decoration: none; }
+.brand small { display: block; font-family: var(--body); font-weight: 400; font-size: .8rem; color: var(--muted); letter-spacing: .02em; }
+
+.nav { max-width: 960px; margin: 0 auto 16px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.nav a {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 64px; min-width: 132px; padding: 6px 16px;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--surface); color: var(--ink);
+  text-decoration: none; font-weight: 700; line-height: 1.2;
+}
+.nav a small { font-weight: 400; font-size: .75rem; color: var(--muted); }
+.nav a svg { width: 20px; height: 20px; margin-bottom: 2px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.nav a.active { background: var(--gold); border-color: var(--gold); color: var(--bg); }
+.nav a.active small { color: #3b2a1a; }
+
+main { max-width: 960px; margin: 0 auto; outline: none; }
+
+/* Christon the Cleric, drawn pixel by pixel (see sprite.js) */
+canvas.sprite { width: 54px; height: 78px; image-rendering: pixelated; flex: none; display: block; }
+
+/* ---------- Cards ---------- */
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 0 0 16px;
+  /* the Hub's double line around every card */
+  box-shadow: inset 0 0 0 3px var(--surface), inset 0 0 0 4px var(--line);
+}
+
+.panel-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.panel-head h2 { margin: 0; }
+
+.back {
+  display: inline-flex; align-items: center;
+  min-height: 44px; margin-bottom: 6px;
+  color: var(--muted); text-decoration: none;
+}
+.back:hover { color: var(--gold); }
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: var(--tap);
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600; font-size: 17px;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.btn:hover { background: var(--sunk); }
+.btn:active { transform: translateY(1px); }
+
+.btn.big { min-height: 64px; padding: 0 26px; font-size: 20px; }
+.btn.small { min-height: 44px; padding: 0 14px; font-size: 16px; }
+.btn.gold { background: var(--gold); border-color: var(--gold); color: var(--bg); }
+.btn.red { background: var(--warn); border-color: var(--warn); color: var(--bg); }
+.btn.green { background: var(--ok); border-color: var(--ok); color: var(--bg); }
+.btn.gold:hover, .btn.red:hover, .btn.green:hover { filter: brightness(1.08); }
+.btn.ghost { color: var(--muted); }
+.btn.danger { background: transparent; border-color: currentColor; color: var(--warn); }
+.btn[aria-pressed="true"] { background: var(--plum-soft); border-color: var(--plum); color: var(--plum); }
+
+/* Recording: the button gently brightens and dims */
+.btn.pulse { animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { filter: brightness(.75); } }
+
+.btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn-row.end { justify-content: flex-end; }
+.btn-row.center { justify-content: center; }
+.btn-row.spaced { margin-top: 16px; }
+
+/* ---------- Forms ---------- */
+
+.form { display: grid; gap: 20px; justify-items: start; }
+.field { display: grid; gap: 6px; width: 100%; font-weight: 600; font-size: 16px; }
+
+textarea, .search {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--sunk);
+}
+textarea { font-size: 22px; resize: vertical; line-height: 1.35; }
+
+.file-btn input { display: none; }
+
+/* ---------- Quest Board ---------- */
+
+.quests { list-style: none; margin: 0; padding: 0; }
+.quests li + li { border-top: 1px solid var(--line); }
+.quest {
+  display: grid; gap: 2px;
+  padding: 12px 10px;
+  border-radius: 10px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.quest:hover { background: var(--sunk); }
+.quest-text { font-size: 20px; }
+.quest-detail { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; color: var(--muted); font-size: 14px; }
+.quest.is-mastered .quest-text { color: var(--muted); }
+
+/* Mastery: one pip per day with a passing take */
+.pips { display: inline-flex; gap: 4px; }
+.pips i { width: 12px; height: 12px; border-radius: 3px; border: 2px solid var(--muted); }
+.pips i.on { background: var(--gold); border-color: var(--gold); }
+.mastered { color: var(--gold); font-weight: 700; }
+
+.empty { display: grid; gap: 12px; justify-items: center; text-align: center; padding: 20px 0; }
+
+/* ---------- Anki Library ---------- */
+
+.search { font-size: 18px; }
+.count { margin: 12px 0 6px; font-size: 14px; }
+.library { list-style: none; margin: 0 0 16px; padding: 0; }
+.library li + li { border-top: 1px solid var(--line); }
+.lib-row { display: flex; align-items: center; gap: 14px; padding: 10px 6px; }
+.lib-row .grow { display: grid; gap: 2px; }
+.lib-text { font-size: 20px; }
+.lib-detail { color: var(--muted); font-size: 15px; }
+.lib-word { color: var(--muted); font-size: 13px; }
+.lib-word b { color: var(--gold); }
+
+/* ---------- Training Grounds ---------- */
+
+.phrase .label { font-size: 13px; letter-spacing: .06em; color: var(--muted); margin-bottom: 6px; }
+.phrase .pt { font-size: clamp(28px, 4.5vw, 38px); line-height: 1.2; }
+.phrase .en { margin-top: 8px; }
+.mastery { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; margin-top: 14px; font-size: 15px; }
+
+.status { margin-top: 12px; color: var(--muted); }
+
+/* What Chrome heard */
+.check:empty { display: none; }
+.check { margin-top: 16px; padding: 14px 16px; border-radius: 12px; background: var(--sunk); border: 1px solid var(--line); }
+.check-grid { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; align-items: baseline; }
+.check .label { font-size: 13px; letter-spacing: .04em; color: var(--muted); }
+.pt-line { font-size: 22px; line-height: 1.35; }
+.pt-line.heard { color: var(--muted); }
+.pt-line mark { background: none; color: var(--warn); text-decoration: underline wavy; text-underline-offset: 4px; }
+.score-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; font-size: 15px; }
+.score { padding: 3px 10px; border-radius: 999px; font-weight: 700; }
+.score.good { background: #1f3328; color: var(--ok); }
+.score.miss { background: #42241f; color: var(--warn); }
+.score.pass { background: var(--gold); color: var(--bg); }
+@media (max-width: 560px) { .check-grid { grid-template-columns: 1fr; } }
+
+.waves { display: grid; gap: 14px; margin-top: 20px; }
+.wave-label { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-family: var(--display); font-weight: 600; }
+.wave-label .muted { font-family: var(--body); font-weight: 400; font-size: 15px; }
+.swatch { width: 14px; height: 14px; border-radius: 4px; }
+.swatch.native { background: var(--gold); }
+.swatch.take { background: var(--plum); }
+
+.wave {
+  position: relative;
+  height: 96px;
+  background: var(--sunk);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.wave canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+.playhead {
+  display: none;
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 2px;
+  background: var(--ink);
+}
+.hint { margin-top: 10px; font-size: 14px; }
+
+.takes { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.take { display: flex; align-items: center; gap: 12px; padding: 6px 8px; border-radius: 10px; border: 1px solid transparent; }
+.take.chosen { border-color: var(--plum); background: var(--plum-soft); }
+
+.tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-size: 12px;
+  letter-spacing: .03em;
+  background: var(--plum-soft);
+  color: var(--plum);
+}
+.tag.good { background: #1f3328; color: var(--ok); }
+.tag.gold { background: var(--gold); color: var(--bg); font-weight: 700; }
+
+/* ---------- Toast ---------- */
+
+#toast {
+  position: fixed;
+  left: 50%; bottom: 20px;
+  z-index: 50;
+  transform: translate(-50%, 20px);
+  max-width: calc(100vw - 32px);
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--bg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s, transform .2s;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 560px) {
+  .btn.big { width: 100%; }
+  .panel { padding: 16px; }
+  .nav a { min-width: 0; flex: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

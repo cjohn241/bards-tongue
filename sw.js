@@ -5,7 +5,7 @@
 // then downloads the new files the next time it's online, and uses
 // them from the next launch. Your phrases and takes (in IndexedDB) are not touched.
 
-const CACHE_NAME = 'bards-tongue-v1';
+const CACHE_NAME = 'bards-tongue-v3';
 const FONT_CACHE = 'bards-tongue-fonts';
 
 const APP_FILES = [

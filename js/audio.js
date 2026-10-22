@@ -33,6 +33,11 @@ async function startRecording() {
   recorder.start();
 }
 
+/** The microphone track being recorded right now (so the speech check can listen to the same one). */
+function recordingTrack() {
+  return recorder ? recorder.stream.getAudioTracks()[0] : null;
+}
+
 /** Stop recording. Resolves with the recording as a Blob. */
 function stopRecording() {
   return new Promise((resolve) => {

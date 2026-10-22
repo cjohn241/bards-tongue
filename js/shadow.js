@@ -32,6 +32,8 @@ async function renderTraining(main, id) {
     recording: false,
     recStarted: 0,
     listener: null,    // Chrome's speech check while recording
+    tester: null,      // the speech check running alone (Test speech check)
+    checking: false,   // waiting for you to say the phrase again for the check
     deleteArmed: false,
     timers: [],
   };
@@ -62,6 +64,10 @@ async function renderTraining(main, id) {
       </div>
       <p class="status" id="rec-status">Press Record, say the phrase, then press Stop.</p>
       <div class="check" id="check"></div>
+      <p class="test-row">
+        <button type="button" class="btn small ghost" data-action="test-speech">Test speech check</button>
+        <span class="muted" id="test-status">Runs the speech check alone, without recording.</span>
+      </p>
     </section>
 
     <section class="panel">
@@ -187,6 +193,8 @@ async function renderTraining(main, id) {
         <p class="label">Chrome heard</p>
         <p class="pt-line heard" lang="pt-BR">${score.heard ? esc(score.heard) : '<span class="muted">(nothing)</span>'}</p>
       </div>
+      ${!score.heard && take.row.speechReason ? `<p class="muted why">${esc(take.row.speechReason)}</p>` : ''}
+      ${take.row.checkedAgain ? '<p class="muted why">Words checked on your second try (this phone won\'t let the recorder and the speech check share the mic). Rhythm is from the recorded take.</p>' : ''}
       <div class="score-row">
         <span class="score ${words.matched === words.total ? 'good' : 'miss'}">Words ${words.matched} of ${words.total}</span>
         <span class="score ${score.rhythmOk ? 'good' : 'miss'}">Rhythm: ${rhythmText(score.ratio)}</span>
@@ -230,8 +238,9 @@ async function renderTraining(main, id) {
     speedBtn.setAttribute('aria-pressed', String(state.speed !== 1));
 
     const recBtn = $('[data-action="record"]');
-    recBtn.textContent = state.recording ? '■ Stop' : '● Record';
-    recBtn.classList.toggle('pulse', state.recording);
+    recBtn.textContent = state.checking ? '🎙 Listening…' : state.recording ? '■ Stop' : '● Record';
+    recBtn.classList.toggle('pulse', state.recording || state.checking);
+    recBtn.disabled = state.checking;
   }
 
   /* ---------- Playback ---------- */
@@ -311,15 +320,22 @@ async function renderTraining(main, id) {
   /* ---------- Recording ---------- */
 
   async function toggleRecord() {
+    if (state.checking) return; // wait for the say-it-again check to finish
     if (!state.recording) {
       stopPlaying();
+      if (state.tester) { // finish any speech test first, so only one check listens
+        state.tester.cancel();
+        state.tester = null;
+        $('[data-action="test-speech"]').textContent = 'Test speech check';
+        $('#test-status').textContent = 'Runs the speech check alone, without recording.';
+      }
       try {
         await startRecording();
       } catch (err) {
         toast('No microphone. Allow the mic in Chrome (icon in the address bar).');
         return;
       }
-      state.listener = startListening();
+      state.listener = startListening(recordingTrack());
       state.recording = true;
       state.recStarted = Date.now();
       updateButtons();
@@ -348,13 +364,38 @@ async function renderTraining(main, id) {
 
     const bounds = speechBounds(buffer);
     const nativeBounds = state.native.bounds;
+
+    // Some phones (Pixels among them) won't let the recorder and the speech
+    // check use the mic at the same time, so the check hears nothing. If the
+    // take clearly has your voice in it, ask for the phrase once more and
+    // run the check alone. Rhythm still comes from the recorded take.
+    let heard = speech;
+    let checkedAgain = false;
+    const matched = (s) => (s.text ? compareWords(sentence.text, s.text).matched : 0);
+    if (SpeechRecognition && bounds.end - bounds.start > 0.3 && matched(speech) === 0) {
+      state.checking = true;
+      updateButtons();
+      $('#rec-status').textContent = "Chrome didn't catch that while recording. Say the phrase once more for the speech check…";
+      state.listener = startListening(null, { single: true });
+      const again = await state.listener.finish();
+      state.listener = null;
+      state.checking = false;
+      updateButtons();
+      if (again.text && matched(again) >= matched(speech)) {
+        heard = again;
+        checkedAgain = true;
+      }
+    }
+
     const row = {
       id: uid(),
       sentenceId: id,
       blob,
       createdAt: Date.now(),
-      score: scoreTake(sentence.text, speech.text, bounds.end - bounds.start, nativeBounds.end - nativeBounds.start),
-      speechError: speech.error || null,
+      score: scoreTake(sentence.text, heard.text, bounds.end - bounds.start, nativeBounds.end - nativeBounds.start),
+      speechError: heard.error || null,
+      speechReason: heard.reason || null,
+      checkedAgain,
     };
     await db.put('recordings', row);
     const wasMastered = masteryOf(state.takes.map((t) => t.row)).mastered;
@@ -363,6 +404,31 @@ async function renderTraining(main, id) {
     $('#rec-status').textContent = 'Saved. Press "Native, then me" to compare.';
     refreshTakes();
     if (!wasMastered && masteryOf(state.takes.map((t) => t.row)).mastered) toast('★ Phrase mastered!');
+  }
+
+  // Run the speech check by itself (no recorder), to see whether it works on this device.
+  // If it hears you here but not while recording, the recorder is keeping the mic to itself.
+  async function testSpeech(btn) {
+    if (state.recording) return;
+    const status = $('#test-status');
+    if (!state.tester) {
+      stopPlaying();
+      state.tester = startListening();
+      btn.textContent = '■ Stop test';
+      status.textContent = 'Listening… say the phrase, then tap Stop test.';
+      return;
+    }
+    const tester = state.tester;
+    state.tester = null;
+    btn.textContent = 'Test speech check';
+    status.textContent = 'Checking…';
+    const result = await tester.stop();
+    if (result.text) {
+      const words = compareWords(sentence.text, result.text);
+      status.textContent = `Heard "${result.text}" (${words.matched} of ${words.total} words). The speech check works here.`;
+    } else {
+      status.textContent = result.error || result.reason;
+    }
   }
 
   /* ---------- Buttons ---------- */
@@ -380,6 +446,7 @@ async function renderTraining(main, id) {
     if (action === 'play-native') playNative();
     if (action === 'compare') compare();
     if (action === 'record') toggleRecord();
+    if (action === 'test-speech') testSpeech(btn);
 
     if (action === 'loop') {
       state.loop = !state.loop;
@@ -437,6 +504,7 @@ async function renderTraining(main, id) {
     stopPlaying();
     if (state.recording) cancelRecording();
     if (state.listener) state.listener.cancel();
+    if (state.tester) state.tester.cancel();
     state.timers.forEach(clearInterval);
     cancelAnimationFrame(frame);
     window.removeEventListener('resize', onResize);

@@ -125,6 +125,7 @@ canvas.sprite { width: 54px; height: 78px; image-rendering: pixelated; flex: non
 .btn.green { background: var(--ok); border-color: var(--ok); color: var(--bg); }
 .btn.gold:hover, .btn.red:hover, .btn.green:hover { filter: brightness(1.08); }
 .btn.ghost { color: var(--muted); }
+.btn[disabled] { cursor: default; }
 .btn.danger { background: transparent; border-color: currentColor; color: var(--warn); }
 .btn[aria-pressed="true"] { background: var(--plum-soft); border-color: var(--plum); color: var(--plum); }
 
@@ -199,6 +200,8 @@ textarea { font-size: 22px; resize: vertical; line-height: 1.35; }
 .mastery { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; margin-top: 14px; font-size: 15px; }
 
 .status { margin-top: 12px; color: var(--muted); }
+.test-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 16px; font-size: 15px; }
+.why { margin-top: 8px; font-size: 15px; }
 
 /* What Chrome heard */
 .check:empty { display: none; }

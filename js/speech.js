@@ -15,24 +15,39 @@ const IS_ANDROID = /Android/i.test(navigator.userAgent);
 /** Plain-English reasons for Chrome's speech error codes. */
 const SPEECH_ERRORS = {
   unsupported: 'This browser has no speech check. Use Chrome.',
-  'not-allowed': 'Chrome blocked the speech check. Open the app with start.bat (see README).',
-  'service-not-allowed': 'Chrome blocked the speech check. Open the app with start.bat (see README).',
+  'not-allowed': 'Chrome blocked the speech check. Allow the microphone for this site (the icon left of the address, then Permissions).',
+  'service-not-allowed': "Chrome's speech service is turned off on this device. On Android, check that the Google app is installed and up to date.",
   network: 'The speech check needs an internet connection.',
   'audio-capture': 'The speech check could not use the microphone while recording. Your take is still saved.',
   'language-not-supported': 'Chrome has no Brazilian Portuguese speech check here.',
 };
 
+/** Why Chrome heard nothing, when it says so. */
+const EMPTY_REASONS = {
+  'no-speech': "Chrome's speech check didn't pick up any voice. If you did speak, the recorder may be keeping the mic to itself; try Test speech check.",
+  aborted: 'The speech check was cut off.',
+};
+
 /**
  * Start listening. Returns an object with stop(), which resolves to
- *   { text: 'what it heard' }            ('' if it heard nothing)
+ *   { text: 'what it heard' }            ('' if it heard nothing; `reason` says why if Chrome told us)
  *   { text: null, error: 'reason' }      if the check couldn't run
+ *
+ * `track` is the recorder's microphone track. Newer Chrome can listen to
+ * that same track, so the recorder and the speech check don't fight over
+ * the mic. Older Chrome ignores it and opens the mic itself.
+ *
+ * `single: true` listens for one sentence and then stops by itself.
  */
-function startListening() {
-  if (!SpeechRecognition) return { stop: async () => ({ text: null, error: SPEECH_ERRORS.unsupported }) };
+function startListening(track = null, { single = false } = {}) {
+  if (!SpeechRecognition) {
+    const none = async () => ({ text: null, error: SPEECH_ERRORS.unsupported });
+    return { stop: none, finish: none, cancel() {} };
+  }
 
   const rec = new SpeechRecognition();
   rec.lang = 'pt-BR';
-  rec.continuous = !IS_ANDROID; // keep listening until Stop, even through pauses
+  rec.continuous = !single && !IS_ANDROID; // keep listening until Stop, even through pauses
   rec.interimResults = false;  // only finished phrases
   rec.maxAlternatives = 1;     // Chrome's best guess only, so the check stays honest
 
@@ -50,7 +65,8 @@ function startListening() {
   rec.onend = () => finished();
 
   try {
-    rec.start();
+    if (track) rec.start(track);
+    else rec.start();
   } catch (err) {
     errorCode = 'start-failed';
     finished();
@@ -62,10 +78,15 @@ function startListening() {
       // The last words can take a moment to arrive after Stop.
       await Promise.race([ended, sleep(5000)]);
       const text = parts.join(' ').trim();
-      if (!text && errorCode && errorCode !== 'no-speech') {
+      if (!text && errorCode && !EMPTY_REASONS[errorCode]) {
         return { text: null, error: SPEECH_ERRORS[errorCode] || `The speech check failed (${errorCode}).` };
       }
-      return { text };
+      return text ? { text } : { text, reason: EMPTY_REASONS[errorCode] || "Chrome's speech check returned no words." };
+    },
+    /** Wait for Chrome to stop by itself after one sentence (at most `maxMs`), then collect the result. */
+    async finish(maxMs = 10000) {
+      await Promise.race([ended, sleep(maxMs)]);
+      return this.stop();
     },
     cancel() {
       try { rec.abort(); } catch (e) { /* already stopped */ }

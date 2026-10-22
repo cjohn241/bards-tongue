@@ -5,7 +5,12 @@
 //   #backup       the Satchel: save or restore a backup file
 //   #train/<id>   the Training Grounds for one phrase
 
+// The app's version, shown small at the bottom of every screen.
+// Keep it the same as CACHE_NAME in sw.js (bards-tongue-v4 -> 'v4').
+const APP_VERSION = 'v4';
+
 const main = document.getElementById('screen');
+document.getElementById('app-version').textContent = `The Bard's Tongue ${APP_VERSION}`;
 let leaveScreen = null; // cleanup from the screen we're on (stop sound, mic off)
 
 async function show() {

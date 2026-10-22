@@ -1,11 +1,12 @@
 // sw.js — the service worker. It saves a copy of every app file on the
 // phone, so the app opens with no internet.
 //
-// WHEN YOU CHANGE ANY APP FILE: bump CACHE_NAME (v1 -> v2). The phone
-// then downloads the new files the next time it's online, and uses
-// them from the next launch. Your phrases and takes (in IndexedDB) are not touched.
+// WHEN YOU CHANGE ANY APP FILE: bump CACHE_NAME (v1 -> v2), and set
+// APP_VERSION in js/app.js to match. The phone then downloads the new
+// files the next time it's online, and uses them from the next launch.
+// Your phrases and takes (in IndexedDB) are not touched.
 
-const CACHE_NAME = 'bards-tongue-v3';
+const CACHE_NAME = 'bards-tongue-v4';
 const FONT_CACHE = 'bards-tongue-fonts';
 
 const APP_FILES = [

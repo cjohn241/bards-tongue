@@ -104,8 +104,10 @@ phrases, so pick one and stick with it (or move phrases with the Satchel).
 ## Part 7. Changing the app later
 
 1. Edit the file(s) on your computer.
-2. Open `sw.js` and change `CACHE_NAME` from `bards-tongue-v1` to `bards-tongue-v2` (then v3, and so on).
+2. Open `sw.js` and change `CACHE_NAME` (for example `bards-tongue-v4` to `bards-tongue-v5`).
+   In `js/app.js`, set `APP_VERSION` to match (`'v5'`).
    **This step matters.** The phone keeps its offline copy until `CACHE_NAME` changes.
+   The version shows at the bottom of every screen, so you can see which one the phone is running.
 3. On GitHub, open the repository, click **Add file → Upload files**, and drag in the changed files, keeping their folders. Commit.
 4. Open the app on the phone while online, close it, and open it again. The second launch runs the new version. Your phrases aren't touched.
 
